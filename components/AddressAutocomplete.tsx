@@ -97,18 +97,20 @@ export default function AddressAutocomplete({ onAddressSelect }: Props) {
         onFocus={() => suggestions.length > 0 && setOpen(true)}
         placeholder={ready ? 'Start typing your address…' : 'Loading address lookup…'}
         disabled={!ready}
-        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-700 disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed"
+        className="w-full h-[52px] border border-green-100 rounded-[4px] px-4 text-[15px] text-ink font-light focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 transition-all duration-200 bg-white placeholder:text-ink-faint disabled:bg-green-50/50 disabled:text-ink-faint disabled:cursor-not-allowed"
       />
       {loading && (
-        <div className="absolute right-3 top-3.5 text-xs text-gray-400">searching…</div>
+        <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[12px] text-ink-faint">
+          searching…
+        </div>
       )}
       {open && suggestions.length > 0 && (
-        <ul className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+        <ul className="absolute z-50 mt-1 w-full bg-white border border-green-100 rounded-[4px] shadow-[0_4px_24px_rgba(10,26,15,0.12)] max-h-60 overflow-y-auto">
           {suggestions.map((s, i) => (
             <li
               key={i}
               onMouseDown={() => handleSelect(s)}
-              className="px-4 py-3 text-sm text-gray-700 cursor-pointer hover:bg-green-50 hover:text-green-800 border-b border-gray-100 last:border-0"
+              className="px-4 py-3 text-[14px] text-ink-muted cursor-pointer hover:bg-green-50 hover:text-green-800 border-b border-green-50 last:border-0 transition-colors duration-150"
             >
               {s.label}
             </li>

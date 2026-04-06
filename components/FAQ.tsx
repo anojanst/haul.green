@@ -1,7 +1,8 @@
 'use client'
 
-import * as Accordion from '@radix-ui/react-accordion'
-import { ChevronDown } from 'lucide-react'
+import { useState } from 'react'
+import { Plus } from 'lucide-react'
+import ScrollReveal from './ScrollReveal'
 
 const faqs = [
   {
@@ -35,30 +36,68 @@ const faqs = [
 ]
 
 export default function FAQ() {
+  const [open, setOpen] = useState<number | null>(null)
+
   return (
-    <section id="faq" className="max-w-2xl mx-auto py-16 px-4">
-      <h2 className="text-3xl font-bold text-center text-green-800 mb-8">
-        Frequently Asked Questions
-      </h2>
-      <Accordion.Root type="multiple" className="space-y-2">
-        {faqs.map((faq, i) => (
-          <Accordion.Item
-            key={i}
-            value={`item-${i}`}
-            className="border border-gray-200 rounded-lg overflow-hidden"
-          >
-            <Accordion.Header>
-              <Accordion.Trigger className="flex w-full items-center justify-between px-5 py-4 text-left font-semibold text-gray-800 hover:bg-gray-50 transition-colors group">
-                {faq.q}
-                <ChevronDown className="h-4 w-4 text-gray-500 transition-transform duration-200 group-data-[state=open]:rotate-180 shrink-0 ml-2" />
-              </Accordion.Trigger>
-            </Accordion.Header>
-            <Accordion.Content className="px-5 pb-4 text-gray-600 text-sm leading-relaxed data-[state=open]:animate-none">
-              {faq.a}
-            </Accordion.Content>
-          </Accordion.Item>
-        ))}
-      </Accordion.Root>
+    <section className="py-[120px] px-6">
+      <div className="max-w-[1100px] mx-auto">
+        <div className="grid lg:grid-cols-[360px,1fr] gap-16 lg:gap-24">
+
+          {/* Left: Sticky heading */}
+          <ScrollReveal>
+            <div className="lg:sticky lg:top-28">
+              <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-green-500 mb-4">
+                • faq
+              </p>
+              <h2 className="font-display font-normal text-[32px] sm:text-[42px] text-ink leading-tight tracking-[-0.01em] mb-4">
+                Common<br />questions.
+              </h2>
+              <p className="text-[15px] font-light text-ink-muted leading-relaxed">
+                Can&apos;t find what you&apos;re looking for?{' '}
+                <a
+                  href="mailto:hello@haul.green"
+                  className="text-green-600 hover:text-green-700 transition-colors duration-200"
+                >
+                  Email us.
+                </a>
+              </p>
+            </div>
+          </ScrollReveal>
+
+          {/* Right: Accordion */}
+          <div>
+            {faqs.map((faq, i) => (
+              <ScrollReveal key={i} delay={i * 40}>
+                <div className="border-b border-black/[0.07] first:border-t first:border-t-black/[0.07]">
+                  <button
+                    className={`flex w-full items-start justify-between py-6 text-left gap-8 transition-colors duration-200 ${
+                      open === i ? 'text-green-700' : 'text-ink hover:text-green-700'
+                    }`}
+                    onClick={() => setOpen(open === i ? null : i)}
+                    aria-expanded={open === i}
+                  >
+                    <span className="text-[17px] font-medium leading-snug">{faq.q}</span>
+                    <span
+                      className={`shrink-0 mt-0.5 text-green-600 transition-transform duration-200 ${
+                        open === i ? 'rotate-45' : ''
+                      }`}
+                    >
+                      <Plus className="w-5 h-5" />
+                    </span>
+                  </button>
+                  <div
+                    className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                      open === i ? 'max-h-96 pb-6 opacity-100' : 'max-h-0 opacity-0'
+                    }`}
+                  >
+                    <p className="text-[15px] font-light text-ink-muted leading-[1.7]">{faq.a}</p>
+                  </div>
+                </div>
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      </div>
     </section>
   )
 }

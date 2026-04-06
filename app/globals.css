@@ -2,8 +2,78 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+:root {
+  --green-950: #0a1a0f;
+  --green-900: #0f2918;
+  --green-800: #1a3d24;
+  --green-700: #1f4d2b;
+  --green-600: #2d6a3f;
+  --green-500: #3a8a52;
+  --green-400: #5aab70;
+  --green-300: #8fcca0;
+  --green-200: #c2e8cc;
+  --green-100: #e8f5ec;
+  --green-50:  #f4faf6;
+  --cream:      #faf8f4;
+  --warm-white: #f7f5f0;
+  --ink:        #1a1a18;
+  --ink-muted:  #4a4a46;
+  --ink-faint:  #9a9a94;
+}
 
 html {
   scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--cream);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Keyframes ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes drawCircle {
+  from { stroke-dashoffset: 226; }
+  to   { stroke-dashoffset: 0; }
+}
+
+@keyframes drawCheck {
+  from { stroke-dashoffset: 60; }
+  to   { stroke-dashoffset: 0; }
+}
+
+/* ── Hero entrance ── */
+.hero-eyebrow {
+  opacity: 0;
+  animation: fadeUp 0.5s ease 0ms both;
+}
+.hero-headline {
+  opacity: 0;
+  animation: fadeUp 0.6s ease 100ms both;
+}
+.hero-sub {
+  opacity: 0;
+  animation: fadeUp 0.6s ease 250ms both;
+}
+
+/* ── Step fade ── */
+.animate-fade-in {
+  animation: fadeUp 0.3s ease both;
+}
+
+/* ── Scroll reveal ── */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal-on-scroll.revealed {
+  opacity: 1;
+  transform: translateY(0);
 }
