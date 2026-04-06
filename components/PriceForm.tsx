@@ -301,55 +301,92 @@ export default function PriceForm() {
                 Select the appliances you&apos;d like removed.
               </p>
 
+              {/* Pricing info banner */}
+              <div className="flex items-start gap-3 mb-6 p-3.5 bg-green-50 border border-green-200 rounded-xl text-[13px] text-ink-muted leading-relaxed">
+                <span className="text-green-600 mt-0.5 shrink-0">ℹ</span>
+                <span>
+                  The <strong className="text-ink font-medium">highest-value item</strong> sets the base price. Every additional item on the same trip is just <strong className="text-ink font-medium">$15</strong> — since the truck is already there.
+                </span>
+              </div>
+
               <div className="grid lg:grid-cols-[1fr,260px] gap-8 items-start">
 
                 {/* Left: item grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-2">
                   {Object.entries(ITEM_PRICES).map(([key, item]) => {
                     const qty = bin[key] ?? 0
                     const isBase = key === pricing.baseKey
                     return (
                       <div
                         key={key}
-                        className={`relative rounded-xl border p-3 flex flex-col items-center gap-1.5 transition-all duration-200 ${
+                        className={`relative rounded-xl border transition-all duration-200 ${
                           qty > 0
                             ? isBase
                               ? 'border-green-600 bg-green-50 shadow-[0_2px_12px_rgba(42,106,63,0.14)]'
                               : 'border-green-400 bg-green-50'
-                            : 'border-green-100 bg-white hover:border-green-400 hover:shadow-[0_2px_12px_rgba(42,106,63,0.08)] hover:-translate-y-0.5'
+                            : 'border-green-100 bg-white hover:border-green-400 hover:shadow-[0_2px_12px_rgba(42,106,63,0.08)]'
                         }`}
                       >
-                        {isBase && qty > 0 && (
-                          <span className="absolute top-2 right-2 text-[9px] font-medium uppercase tracking-wider bg-green-800 text-white px-1.5 py-0.5 rounded-[2px]">
-                            base
-                          </span>
-                        )}
-                        <div
-                          className={`transition-colors duration-200 ${
-                            qty > 0 ? 'text-green-600' : 'text-ink-faint'
-                          }`}
-                        >
-                          {ITEM_ICONS[key]}
+                        {/* Mobile: single-line horizontal layout */}
+                        <div className="flex sm:hidden items-center gap-3 px-4 py-3">
+                          <div className={`shrink-0 transition-colors duration-200 ${qty > 0 ? 'text-green-600' : 'text-ink-faint'}`}>
+                            {ITEM_ICONS[key]}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className="text-[13px] font-medium text-ink leading-none block">{item.name}</span>
+                            <span className="text-[11px] text-ink-faint">${item.price}</span>
+                          </div>
+                          {isBase && qty > 0 && (
+                            <span className="text-[9px] font-medium uppercase tracking-wider bg-green-800 text-white px-1.5 py-0.5 rounded-[2px] shrink-0">
+                              base
+                            </span>
+                          )}
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              onClick={() => updateBin(key, -1)}
+                              disabled={qty === 0}
+                              className="w-7 h-7 rounded-full border border-green-200 flex items-center justify-center text-ink-muted hover:border-green-500 hover:text-green-700 disabled:opacity-25 disabled:cursor-not-allowed transition-all duration-150"
+                            >
+                              <Minus className="w-3 h-3" />
+                            </button>
+                            <span className="w-4 text-center text-[14px] font-medium text-ink">{qty}</span>
+                            <button
+                              onClick={() => updateBin(key, 1)}
+                              className="w-7 h-7 rounded-full border border-green-600 text-green-700 flex items-center justify-center hover:bg-green-600 hover:text-white transition-all duration-150"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </button>
+                          </div>
                         </div>
-                        <span className="text-[12px] font-medium text-center text-ink leading-tight">
-                          {item.name}
-                        </span>
-                        <span className="text-[11px] text-ink-faint">${item.price}</span>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => updateBin(key, -1)}
-                            disabled={qty === 0}
-                            className="w-7 h-7 rounded-full border border-green-200 flex items-center justify-center text-ink-muted hover:border-green-500 hover:text-green-700 disabled:opacity-25 disabled:cursor-not-allowed transition-all duration-150"
-                          >
-                            <Minus className="w-3 h-3" />
-                          </button>
-                          <span className="w-4 text-center text-[14px] font-medium text-ink">{qty}</span>
-                          <button
-                            onClick={() => updateBin(key, 1)}
-                            className="w-7 h-7 rounded-full border border-green-600 text-green-700 flex items-center justify-center hover:bg-green-600 hover:text-white transition-all duration-150"
-                          >
-                            <Plus className="w-3 h-3" />
-                          </button>
+
+                        {/* Desktop: original card layout */}
+                        <div className="hidden sm:flex flex-col items-center gap-1.5 p-3">
+                          {isBase && qty > 0 && (
+                            <span className="absolute top-2 right-2 text-[9px] font-medium uppercase tracking-wider bg-green-800 text-white px-1.5 py-0.5 rounded-[2px]">
+                              base
+                            </span>
+                          )}
+                          <div className={`transition-colors duration-200 ${qty > 0 ? 'text-green-600' : 'text-ink-faint'}`}>
+                            {ITEM_ICONS[key]}
+                          </div>
+                          <span className="text-[12px] font-medium text-center text-ink leading-tight">{item.name}</span>
+                          <span className="text-[11px] text-ink-faint">${item.price}</span>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => updateBin(key, -1)}
+                              disabled={qty === 0}
+                              className="w-7 h-7 rounded-full border border-green-200 flex items-center justify-center text-ink-muted hover:border-green-500 hover:text-green-700 disabled:opacity-25 disabled:cursor-not-allowed transition-all duration-150"
+                            >
+                              <Minus className="w-3 h-3" />
+                            </button>
+                            <span className="w-4 text-center text-[14px] font-medium text-ink">{qty}</span>
+                            <button
+                              onClick={() => updateBin(key, 1)}
+                              className="w-7 h-7 rounded-full border border-green-600 text-green-700 flex items-center justify-center hover:bg-green-600 hover:text-white transition-all duration-150"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     )
