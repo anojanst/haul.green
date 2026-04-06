@@ -13,16 +13,16 @@ export const metadata: Metadata = {
     'dryer disposal Auckland',
     'GreenHaul',
   ],
-  metadataBase: new URL('https://greenhaul.kiwi'),
-  alternates: { canonical: 'https://greenhaul.kiwi' },
+  metadataBase: new URL('https://haul.green'),
+  alternates: { canonical: 'https://haul.green' },
   robots: { index: true, follow: true },
   openGraph: {
     type: 'website',
-    url: 'https://greenhaul.kiwi',
+    url: 'https://haul.green',
     title: 'GreenHaul | Whiteware Removal & Disposal NZ',
     description:
       'Book doorstep whiteware collection across NZ. Get instant pricing for fridge, washing machine, dryer and appliance removal. Fast, affordable, eco-friendly.',
-    images: [{ url: 'https://greenhaul.kiwi/og-image.jpg', width: 1200, height: 630 }],
+    images: [{ url: 'https://haul.green/og-image.jpg', width: 1200, height: 630 }],
     siteName: 'GreenHaul',
   },
   twitter: {
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     title: 'GreenHaul | Whiteware Removal & Disposal NZ',
     description:
       'Book doorstep whiteware collection across NZ. Get instant pricing for fridge, washing machine, dryer and appliance removal.',
-    images: ['https://greenhaul.kiwi/og-image.jpg'],
+    images: ['https://haul.green/og-image.jpg'],
   },
 }
 
@@ -39,8 +39,8 @@ const jsonLd = {
   '@type': 'LocalBusiness',
   name: 'GreenHaul',
   description: 'Whiteware removal and disposal service in New Zealand',
-  url: 'https://greenhaul.kiwi',
-  email: 'hello@greenhaul.kiwi',
+  url: 'https://haul.green',
+  email: 'hello@haul.green',
   areaServed: {
     '@type': 'Country',
     name: 'New Zealand',
@@ -93,13 +93,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <ul className="space-y-1 text-sm text-green-200">
                 <li><a href="/" className="hover:text-white">Home</a></li>
                 <li><a href="#faq" className="hover:text-white">FAQ</a></li>
-                <li><a href="mailto:hello@greenhaul.kiwi" className="hover:text-white">Contact</a></li>
+                <li><a href="mailto:hello@haul.green" className="hover:text-white">Contact</a></li>
               </ul>
             </div>
             <div>
               <p className="font-semibold mb-2">Contact</p>
-              <a href="mailto:hello@greenhaul.kiwi" className="text-green-200 text-sm hover:text-white">
-                hello@greenhaul.kiwi
+              <a href="mailto:hello@haul.green" className="text-green-200 text-sm hover:text-white">
+                hello@haul.green
               </a>
             </div>
           </div>

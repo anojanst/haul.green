@@ -61,7 +61,7 @@ function priceBreakdown(data: BookingData): string {
 
 const footer = `
   <p style="margin-top:32px;color:#6b7280;font-size:13px;border-top:1px solid #e5e7eb;padding-top:16px;">
-    <em>Whiteware gone, the green way.</em> — <a href="https://greenhaul.kiwi" style="color:#166534;">greenhaul.kiwi</a>
+    <em>Whiteware gone, the green way.</em> — <a href="https://haul.green" style="color:#166534;">haul.green</a>
   </p>
 `
 
@@ -123,7 +123,7 @@ export function customerQuoteEmail(data: BookingData): { subject: string; html: 
         <p><strong>Floor access:</strong> ${data.pickupType}</p>
         <p style="color:#6b7280;font-size:13px;">Quote valid for 7 days.</p>
         <p style="background:#f0fdf4;border-left:4px solid #166534;padding:12px 16px;border-radius:4px;">
-          Ready to book? Reply to this email or visit <a href="https://greenhaul.kiwi" style="color:#166534;">greenhaul.kiwi</a>
+          Ready to book? Reply to this email or visit <a href="https://haul.green" style="color:#166534;">haul.green</a>
         </p>
         ${footer}
       </div>
