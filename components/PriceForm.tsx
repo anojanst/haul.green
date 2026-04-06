@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import {
   Refrigerator,
   WashingMachine,
@@ -74,6 +74,15 @@ interface DistanceResult {
 }
 
 export default function PriceForm() {
+  const formRef = useRef<HTMLElement>(null)
+
+  function goToStep(n: number) {
+    setStep(n)
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 50)
+  }
+
   const [step, setStep] = useState(1)
   const [bin, setBin] = useState<Bin>({})
   const [address, setAddress] = useState('')
@@ -87,6 +96,7 @@ export default function PriceForm() {
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
+  const [additionalInfo, setAdditionalInfo] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [confirmation, setConfirmation] = useState<{ action: 'booking' | 'quote'; email: string } | null>(null)
 
@@ -159,6 +169,7 @@ export default function PriceForm() {
           floorSurcharge: pricing.floorSurcharge,
           distanceLevy: pricing.distanceLevy,
           total: pricing.total,
+          additionalInfo,
         }),
       })
       const data = await res.json()
@@ -183,6 +194,7 @@ export default function PriceForm() {
     setName('')
     setPhone('')
     setEmail('')
+    setAdditionalInfo('')
     setConfirmation(null)
     setStep(1)
   }
@@ -241,7 +253,7 @@ export default function PriceForm() {
   ]
 
   return (
-    <section id="price-form" className="max-w-[960px] mx-auto">
+    <section id="price-form" ref={formRef} className="max-w-[960px] mx-auto scroll-mt-20">
       {/* Dots */}
       <div className="flex items-start justify-center mb-10">
         {steps.map(({ n, label }, idx) => (
@@ -388,7 +400,7 @@ export default function PriceForm() {
                       </div>
                       <button
                         disabled={totalQty === 0}
-                        onClick={() => setStep(2)}
+                        onClick={() => goToStep(2)}
                         className="w-full h-11 bg-green-800 text-white font-medium rounded-[2px] hover:bg-green-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.99] text-[14px]"
                       >
                         Pickup details →
@@ -442,7 +454,15 @@ export default function PriceForm() {
                           </p>
                         ) : (
                           <form
-                            onSubmit={(e) => { e.preventDefault(); setOutOfAreaSubmitted(true) }}
+                            onSubmit={async (e) => {
+                              e.preventDefault()
+                              setOutOfAreaSubmitted(true)
+                              await fetch('/api/notify-area', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ email: outOfAreaEmail }),
+                              }).catch(() => {})
+                            }}
                             className="flex gap-2"
                           >
                             <input
@@ -471,7 +491,7 @@ export default function PriceForm() {
                             : 'bg-green-50 text-green-700 border-green-200'
                         }`}
                       >
-                        📍 {distanceResult.distanceKm} km from Onehunga
+                        📍 {distanceResult.distanceKm} km from us
                         {distanceResult.levy > 0 ? ` — +$${distanceResult.levy} levy` : ' — no levy'}
                       </div>
                     )}
@@ -556,14 +576,14 @@ export default function PriceForm() {
                       </div>
                       <div className="flex gap-2">
                         <button
-                          onClick={() => setStep(1)}
+                          onClick={() => goToStep(1)}
                           className="h-11 px-4 border border-green-200 text-ink-muted rounded-[2px] hover:border-green-400 hover:text-ink transition-all duration-200 text-[13px]"
                         >
                           ←
                         </button>
                         <button
                           disabled={!address || distanceLoading || !distanceResult?.withinServiceArea}
-                          onClick={() => setStep(3)}
+                          onClick={() => goToStep(3)}
                           className="flex-1 h-11 bg-green-800 text-white font-medium rounded-[2px] hover:bg-green-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.99] text-[14px]"
                         >
                           Your details →
@@ -587,121 +607,138 @@ export default function PriceForm() {
                 Almost there — we&apos;ll confirm by phone or email within 24 hours.
               </p>
 
-              {/* Two-column inputs */}
-              <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-[11px] font-medium uppercase tracking-[0.08em] text-ink-faint mb-2">
-                    Full name
-                  </label>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Jane Smith"
-                    className="w-full h-12 border border-green-100 rounded-[4px] px-4 text-[15px] text-ink font-light focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 transition-all duration-200 bg-white placeholder:text-ink-faint"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-medium uppercase tracking-[0.08em] text-ink-faint mb-2">
-                    Phone
-                  </label>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="021 XXX XXXX"
-                    className="w-full h-12 border border-green-100 rounded-[4px] px-4 text-[15px] text-ink font-light focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 transition-all duration-200 bg-white placeholder:text-ink-faint"
-                  />
-                </div>
-              </div>
-              <div className="mb-8">
-                <label className="block text-[11px] font-medium uppercase tracking-[0.08em] text-ink-faint mb-2">
-                  Email address
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="jane@example.com"
-                  className="w-full h-12 border border-green-100 rounded-[4px] px-4 text-[15px] text-ink font-light focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 transition-all duration-200 bg-white placeholder:text-ink-faint"
-                />
-              </div>
+              <div className="grid lg:grid-cols-[1fr,320px] gap-8 items-start">
 
-              {/* Receipt-style order summary */}
-              <div className="border border-green-100 rounded-xl overflow-hidden mb-8">
-                <div className="bg-green-50 px-5 py-3 border-b border-green-100">
-                  <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-green-600">
-                    Order summary
-                  </p>
+                {/* Left: contact fields */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[11px] font-medium uppercase tracking-[0.08em] text-ink-faint mb-2">
+                      Full name
+                    </label>
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Jane Smith"
+                      className="w-full h-12 border border-green-100 rounded-[4px] px-4 text-[15px] text-ink font-light focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 transition-all duration-200 bg-white placeholder:text-ink-faint"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium uppercase tracking-[0.08em] text-ink-faint mb-2">
+                      Phone
+                    </label>
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="021 XXX XXXX"
+                      className="w-full h-12 border border-green-100 rounded-[4px] px-4 text-[15px] text-ink font-light focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 transition-all duration-200 bg-white placeholder:text-ink-faint"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium uppercase tracking-[0.08em] text-ink-faint mb-2">
+                      Email address
+                    </label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="jane@example.com"
+                      className="w-full h-12 border border-green-100 rounded-[4px] px-4 text-[15px] text-ink font-light focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 transition-all duration-200 bg-white placeholder:text-ink-faint"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium uppercase tracking-[0.08em] text-ink-faint mb-2">
+                      Additional info{' '}
+                      <span className="normal-case tracking-normal text-ink-faint/60 font-normal">(optional)</span>
+                    </label>
+                    <textarea
+                      value={additionalInfo}
+                      onChange={(e) => setAdditionalInfo(e.target.value)}
+                      placeholder="Access instructions, preferred time, anything else we should know…"
+                      rows={3}
+                      className="w-full border border-green-100 rounded-[4px] px-4 py-3 text-[15px] text-ink font-light focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 transition-all duration-200 bg-white placeholder:text-ink-faint resize-none"
+                    />
+                  </div>
                 </div>
-                <div className="px-5 py-4">
-                  <ul className="space-y-2 mb-4">
-                    {binItems.map((item) => (
-                      <li key={item.key} className="flex items-center justify-between text-[13px]">
-                        <span className="text-ink-muted flex items-center gap-2">
-                          {item.name} ×{item.qty}
-                          {item.isBase && (
-                            <span className="text-[9px] font-medium uppercase tracking-wider bg-green-800 text-white px-1.5 py-0.5 rounded-[2px]">
-                              base
-                            </span>
-                          )}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="border-t border-green-100 pt-3 space-y-2">
-                    <div className="flex justify-between text-[13px] text-ink-muted">
-                      <span>Items subtotal</span>
-                      <span>${pricing.baseItemPrice + pricing.additionalItemsCost}</span>
+
+                {/* Right: sticky order summary + actions */}
+                <div className="lg:sticky lg:top-28">
+                  <div className="bg-green-50 rounded-xl border border-green-200 overflow-hidden">
+                    <div className="px-5 py-4 border-b border-green-200">
+                      <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-green-600">
+                        Order summary
+                      </p>
                     </div>
-                    {pricing.floorSurcharge > 0 && (
-                      <div className="flex justify-between text-[13px] text-ink-muted">
-                        <span>Floor surcharge</span>
-                        <span>+${pricing.floorSurcharge}</span>
-                      </div>
-                    )}
-                    {pricing.distanceLevy > 0 && (
-                      <div className="flex justify-between text-[13px] text-ink-muted">
-                        <span>Distance levy ({distanceResult?.distanceKm} km)</span>
-                        <span>+${pricing.distanceLevy}</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="border-t border-green-200 mt-3 pt-3 flex justify-between items-baseline">
-                    <span className="text-[14px] font-medium text-ink">Total NZD</span>
-                    <span className="font-display italic text-[32px] text-green-800">
-                      ${pricing.total}
-                    </span>
-                  </div>
-                </div>
-              </div>
 
-              {/* Buttons */}
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    disabled={!name || !phone || !email || submitting}
-                    onClick={() => handleSubmit('booking')}
-                    className="h-12 bg-green-800 text-white font-medium rounded-[2px] hover:bg-green-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.99] flex items-center justify-center gap-2 text-[15px]"
-                  >
-                    {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                    Book now →
-                  </button>
-                  <button
-                    disabled={!name || !phone || !email || submitting}
-                    onClick={() => handleSubmit('quote')}
-                    className="h-12 border border-green-800 text-green-800 font-medium rounded-[2px] hover:bg-green-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 text-[14px]"
-                  >
-                    {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                    Send quote
-                  </button>
+                    <div className="px-5 py-4 space-y-2">
+                      {binItems.map((item) => (
+                        <div key={item.key} className="flex items-center justify-between text-[13px]">
+                          <span className="text-ink-muted flex items-center gap-1.5">
+                            {item.name} ×{item.qty}
+                            {item.isBase && (
+                              <span className="text-[9px] font-medium uppercase tracking-wider bg-green-800 text-white px-1.5 py-0.5 rounded-[2px]">
+                                base
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                      ))}
+                      <div className="border-t border-green-200 pt-2.5 mt-1 space-y-2">
+                        <div className="flex justify-between text-[13px] text-ink-muted">
+                          <span>Items subtotal</span>
+                          <span>${pricing.baseItemPrice + pricing.additionalItemsCost}</span>
+                        </div>
+                        {pricing.floorSurcharge > 0 && (
+                          <div className="flex justify-between text-[13px] text-ink-muted">
+                            <span>Floor surcharge</span>
+                            <span>+${pricing.floorSurcharge}</span>
+                          </div>
+                        )}
+                        {pricing.distanceLevy > 0 && (
+                          <div className="flex justify-between text-[13px] text-ink-muted">
+                            <span>Distance levy ({distanceResult?.distanceKm} km)</span>
+                            <span>+${pricing.distanceLevy}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="px-5 py-4 border-t border-green-200 space-y-2">
+                      <div className="flex justify-between items-baseline mb-4">
+                        <span className="text-[12px] font-medium text-ink-muted uppercase tracking-[0.08em]">
+                          Total NZD
+                        </span>
+                        <span className="font-display italic text-[26px] text-green-800">
+                          ${pricing.total}
+                        </span>
+                      </div>
+                      <button
+                        disabled={!name || !phone || !email || submitting}
+                        onClick={() => handleSubmit('booking')}
+                        className="w-full h-11 bg-green-800 text-white font-medium rounded-[2px] hover:bg-green-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.99] flex items-center justify-center gap-2 text-[14px]"
+                      >
+                        {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                        Book now →
+                      </button>
+                      <button
+                        disabled={!name || !phone || !email || submitting}
+                        onClick={() => handleSubmit('quote')}
+                        className="w-full h-11 border border-green-800 text-green-800 font-medium rounded-[2px] hover:bg-green-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 text-[13px]"
+                      >
+                        {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                        Send quote to email
+                      </button>
+                      <button
+                        onClick={() => goToStep(2)}
+                        className="w-full h-9 text-[12px] text-ink-faint hover:text-ink-muted transition-colors duration-200"
+                      >
+                        ← Back
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <button
-                  onClick={() => setStep(2)}
-                  className="w-full h-10 text-[13px] text-ink-faint hover:text-ink-muted transition-colors duration-200"
-                >
-                  ← Back
-                </button>
+
               </div>
             </div>
           )}

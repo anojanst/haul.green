@@ -1,22 +1,22 @@
 export const ITEM_PRICES: Record<string, { name: string; price: number }> = {
-  fridge:          { name: 'Fridge',            price: 65 },
-  washing_machine: { name: 'Washing Machine',   price: 60 },
-  dryer:           { name: 'Dryer',             price: 55 },
-  dishwasher:      { name: 'Dishwasher',        price: 55 },
-  oven:            { name: 'Oven / Stove',      price: 60 },
-  freezer:         { name: 'Freezer',           price: 60 },
-  tv:              { name: 'TV',                price: 45 },
-  microwave:       { name: 'Microwave',         price: 35 },
-  other:           { name: 'Other Appliance',   price: 40 },
+  fridge:          { name: 'Fridge',            price: 50 },
+  washing_machine: { name: 'Washing Machine',   price: 40 },
+  dryer:           { name: 'Dryer',             price: 40 },
+  dishwasher:      { name: 'Dishwasher',        price: 40 },
+  oven:            { name: 'Oven / Stove',      price: 40 },
+  freezer:         { name: 'Freezer',           price: 50 },
+  tv:              { name: 'TV',                price: 20 },
+  microwave:       { name: 'Microwave',         price: 20 },
+  other:           { name: 'Other Appliance',   price: 20 },
 }
 
 export const ADDITIONAL_ITEM_RATE = 15
 
 export const PICKUP_SURCHARGES: Record<string, { label: string; surcharge: number }> = {
-  driveway:         { label: 'Driveway / Ground Floor',         surcharge: 0  },
-  first_floor:      { label: 'First Floor',                     surcharge: 20 },
-  second_no_lift:   { label: '2nd Floor or Above — No Lift',    surcharge: 50 },
-  second_with_lift: { label: '2nd Floor or Above — With Lift',  surcharge: 30 },
+  driveway:         { label: 'Driveway',         surcharge: 0  },
+  first_floor:      { label: 'Ground Floor / First Floor',                     surcharge: 15 },
+  second_no_lift:   { label: '2nd Floor or Above — No Lift',    surcharge: 40 },
+  second_with_lift: { label: '2nd Floor or Above — With Lift',  surcharge: 25 },
 }
 
 export const DISTANCE_TIERS = [

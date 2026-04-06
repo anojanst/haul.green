@@ -12,6 +12,7 @@ export interface BookingData {
   floorSurcharge: number
   distanceLevy: number
   total: number
+  additionalInfo?: string
 }
 
 function firstName(name: string) {
@@ -26,129 +27,201 @@ function formatNZT(): string {
   })
 }
 
-function binTable(bin: BookingData['bin']): string {
-  return bin
-    .map(
-      (item) =>
-        `<tr>
-          <td style="padding:4px 8px;">${item.name}${item.isBase ? ' <span style="color:#166534;font-weight:600;">(base)</span>' : ''}</td>
-          <td style="padding:4px 8px;">×${item.qty}</td>
-        </tr>`,
-    )
-    .join('')
+// ── Shared styles ──────────────────────────────────────────────
+const colors = {
+  green: '#1a3d24',
+  greenLight: '#f4faf6',
+  greenBorder: '#c2e8cc',
+  greenAccent: '#3a8a52',
+  ink: '#1a1a18',
+  inkMuted: '#4a4a46',
+  inkFaint: '#9a9a94',
+  border: '#e8f5ec',
 }
 
-function priceBreakdown(data: BookingData): string {
+const wrapper = (content: string) => `
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4faf6;font-family:'DM Sans',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4faf6;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:${colors.green};padding:24px 32px;border-radius:12px 12px 0 0;">
+            <span style="font-size:20px;font-weight:400;color:#ffffff;letter-spacing:-0.01em;">haul</span><span style="font-size:20px;font-weight:400;color:#5aab70;">.green</span>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="background:#ffffff;padding:32px;border-left:1px solid ${colors.border};border-right:1px solid ${colors.border};">
+            ${content}
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:${colors.greenLight};padding:20px 32px;border:1px solid ${colors.border};border-top:none;border-radius:0 0 12px 12px;text-align:center;">
+            <p style="margin:0;font-size:13px;color:${colors.inkFaint};font-style:italic;">Whiteware gone, the green way.</p>
+            <p style="margin:6px 0 0;font-size:12px;color:${colors.inkFaint};">
+              <a href="https://haul.green" style="color:${colors.greenAccent};text-decoration:none;">haul.green</a>
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
+
+function sectionLabel(text: string) {
+  return `<p style="margin:24px 0 8px;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;color:${colors.greenAccent};">${text}</p>`
+}
+
+function row(label: string, value: string, bold = false) {
   return `
-    <table style="width:100%;border-collapse:collapse;margin-top:12px;">
-      <tbody>
-        ${binTable(data.bin)}
-        <tr><td colspan="2" style="border-top:1px solid #e5e7eb;padding:4px 0;"></td></tr>
-        <tr>
-          <td style="padding:4px 8px;">Items subtotal</td>
-          <td style="padding:4px 8px;">$${data.baseItemPrice + data.additionalItemsCost}</td>
-        </tr>
-        ${data.floorSurcharge > 0 ? `<tr><td style="padding:4px 8px;">Floor surcharge</td><td style="padding:4px 8px;">$${data.floorSurcharge}</td></tr>` : ''}
-        ${data.distanceLevy > 0 ? `<tr><td style="padding:4px 8px;">Distance levy (${data.distanceKm} km)</td><td style="padding:4px 8px;">$${data.distanceLevy}</td></tr>` : ''}
-        <tr>
-          <td style="padding:6px 8px;font-weight:700;font-size:18px;color:#166534;">Total NZD</td>
-          <td style="padding:6px 8px;font-weight:700;font-size:18px;color:#166534;">$${data.total}</td>
-        </tr>
-      </tbody>
-    </table>
-  `
+  <tr>
+    <td style="padding:6px 0;font-size:14px;color:${colors.inkMuted};vertical-align:top;">${label}</td>
+    <td style="padding:6px 0 6px 16px;font-size:14px;color:${bold ? colors.ink : colors.inkMuted};font-weight:${bold ? '500' : '400'};text-align:right;vertical-align:top;white-space:nowrap;">${value}</td>
+  </tr>`
 }
 
-const footer = `
-  <p style="margin-top:32px;color:#6b7280;font-size:13px;border-top:1px solid #e5e7eb;padding-top:16px;">
-    <em>Whiteware gone, the green way.</em> — <a href="https://haul.green" style="color:#166534;">haul.green</a>
-  </p>
-`
+function dividerRow() {
+  return `<tr><td colspan="2" style="padding:4px 0;border-bottom:1px solid ${colors.border};"></td></tr>`
+}
 
+function priceTable(data: BookingData): string {
+  const itemRows = data.bin.map((item) =>
+    row(
+      `${item.name} ×${item.qty}${item.isBase ? ' <span style="font-size:9px;background:' + colors.green + ';color:#fff;padding:1px 5px;border-radius:2px;text-transform:uppercase;letter-spacing:0.05em;margin-left:4px;">base</span>' : ''}`,
+      '',
+    )
+  ).join('')
+
+  return `
+  <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+    <tbody>
+      ${itemRows}
+      ${dividerRow()}
+      ${row('Items subtotal', `$${data.baseItemPrice + data.additionalItemsCost}`)}
+      ${data.floorSurcharge > 0 ? row('Floor surcharge', `+$${data.floorSurcharge}`) : ''}
+      ${data.distanceLevy > 0 ? row(`Distance levy (${data.distanceKm} km)`, `+$${data.distanceLevy}`) : ''}
+      ${dividerRow()}
+      <tr>
+        <td style="padding:10px 0 4px;font-size:15px;font-weight:600;color:${colors.ink};">Total NZD</td>
+        <td style="padding:10px 0 4px 16px;font-size:22px;font-weight:600;color:${colors.green};text-align:right;font-style:italic;">$${data.total}</td>
+      </tr>
+    </tbody>
+  </table>`
+}
+
+function detailRows(data: BookingData): string {
+  return `
+  <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+    <tbody>
+      ${row('Address', data.address)}
+      ${row('Floor access', data.pickupType)}
+      ${row('Distance from Us', `${data.distanceKm} km`)}
+      ${data.additionalInfo ? row('Additional info', data.additionalInfo) : ''}
+    </tbody>
+  </table>`
+}
+
+function customerDetailRows(data: BookingData): string {
+  return `
+  <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+    <tbody>
+      ${row('Name', data.name)}
+      ${row('Phone', data.phone)}
+      ${row('Email', data.email)}
+    </tbody>
+  </table>`
+}
+
+// ── Customer: Booking Confirmation ───────────────────────────
 export function customerBookingEmail(data: BookingData): { subject: string; html: string } {
   return {
     subject: 'Your GreenHaul Booking is Confirmed 🟢',
-    html: `
-      <div style="font-family:Inter,sans-serif;max-width:600px;margin:0 auto;color:#111827;">
-        <h1 style="color:#166534;">Hi ${firstName(data.name)}, you're booked! 🟢</h1>
-        <p>Thanks for choosing GreenHaul. Here's a summary of your booking:</p>
-        <h3>Items</h3>
-        ${priceBreakdown(data)}
-        <h3>Pickup Details</h3>
-        <p><strong>Address:</strong> ${data.address}</p>
-        <p><strong>Floor access:</strong> ${data.pickupType}</p>
-        <p><strong>Distance from Onehunga:</strong> ${data.distanceKm} km</p>
-        <p style="background:#f0fdf4;border-left:4px solid #166534;padding:12px 16px;border-radius:4px;">
-          Our team will contact you within 24 hours to confirm your pickup window.
-        </p>
-        ${footer}
+    html: wrapper(`
+      <h1 style="margin:0 0 8px;font-size:26px;font-weight:400;color:${colors.ink};letter-spacing:-0.01em;">Hi ${firstName(data.name)}, you&rsquo;re booked!</h1>
+      <p style="margin:0 0 24px;font-size:15px;color:${colors.inkMuted};line-height:1.6;">Thanks for choosing GreenHaul. Here&rsquo;s a summary of your booking.</p>
+
+      ${sectionLabel('Your items')}
+      ${priceTable(data)}
+
+      ${sectionLabel('Pickup details')}
+      ${detailRows(data)}
+
+      <div style="margin:28px 0;background:${colors.greenLight};border-left:3px solid ${colors.greenAccent};padding:14px 18px;border-radius:0 6px 6px 0;">
+        <p style="margin:0;font-size:14px;color:${colors.ink};line-height:1.6;">Our team will contact you within <strong>24 hours</strong> to confirm your pickup window.</p>
       </div>
-    `,
+    `),
   }
 }
 
+// ── Admin: Booking Notification ───────────────────────────────
 export function adminBookingEmail(data: BookingData): { subject: string; html: string } {
   return {
     subject: `New Booking — ${data.name} — $${data.total}`,
-    html: `
-      <div style="font-family:Inter,sans-serif;max-width:600px;margin:0 auto;color:#111827;">
-        <h2>New Booking</h2>
-        <h3>Customer</h3>
-        <p><strong>Name:</strong> ${data.name}</p>
-        <p><strong>Phone:</strong> ${data.phone}</p>
-        <p><strong>Email:</strong> ${data.email}</p>
-        <h3>Items</h3>
-        ${priceBreakdown(data)}
-        <h3>Pickup</h3>
-        <p><strong>Address:</strong> ${data.address}</p>
-        <p><strong>Floor access:</strong> ${data.pickupType}</p>
-        <p><strong>Distance:</strong> ${data.distanceKm} km</p>
-        <p style="color:#6b7280;font-size:13px;">Received: ${formatNZT()} NZT</p>
-      </div>
-    `,
+    html: wrapper(`
+      <h2 style="margin:0 0 4px;font-size:20px;font-weight:600;color:${colors.ink};">New Booking</h2>
+      <p style="margin:0 0 24px;font-size:13px;color:${colors.inkFaint};">Received ${formatNZT()} NZT</p>
+
+      ${sectionLabel('Customer')}
+      ${customerDetailRows(data)}
+
+      ${sectionLabel('Items & pricing')}
+      ${priceTable(data)}
+
+      ${sectionLabel('Pickup')}
+      ${detailRows(data)}
+    `),
   }
 }
 
+// ── Customer: Quote ───────────────────────────────────────────
 export function customerQuoteEmail(data: BookingData): { subject: string; html: string } {
   return {
     subject: 'Your GreenHaul Quote 🟢',
-    html: `
-      <div style="font-family:Inter,sans-serif;max-width:600px;margin:0 auto;color:#111827;">
-        <h1 style="color:#166534;">Hi ${firstName(data.name)}, here's your instant quote 🟢</h1>
-        <p>Thanks for using GreenHaul. Here's the quote you requested:</p>
-        <h3>Items</h3>
-        ${priceBreakdown(data)}
-        <h3>Pickup Details</h3>
-        <p><strong>Address:</strong> ${data.address}</p>
-        <p><strong>Floor access:</strong> ${data.pickupType}</p>
-        <p style="color:#6b7280;font-size:13px;">Quote valid for 7 days.</p>
-        <p style="background:#f0fdf4;border-left:4px solid #166534;padding:12px 16px;border-radius:4px;">
-          Ready to book? Reply to this email or visit <a href="https://haul.green" style="color:#166534;">haul.green</a>
-        </p>
-        ${footer}
+    html: wrapper(`
+      <h1 style="margin:0 0 8px;font-size:26px;font-weight:400;color:${colors.ink};letter-spacing:-0.01em;">Hi ${firstName(data.name)}, here&rsquo;s your quote.</h1>
+      <p style="margin:0 0 24px;font-size:15px;color:${colors.inkMuted};line-height:1.6;">Here&rsquo;s the instant quote you requested.</p>
+
+      ${sectionLabel('Your items')}
+      ${priceTable(data)}
+
+      ${sectionLabel('Pickup details')}
+      ${detailRows(data)}
+
+      <p style="margin:20px 0 4px;font-size:13px;color:${colors.inkFaint};">Quote valid for 7 days.</p>
+
+      <div style="margin:16px 0 0;background:${colors.greenLight};border-left:3px solid ${colors.greenAccent};padding:14px 18px;border-radius:0 6px 6px 0;">
+        <p style="margin:0;font-size:14px;color:${colors.ink};line-height:1.6;">Ready to book? Reply to this email or visit <a href="https://haul.green" style="color:${colors.greenAccent};text-decoration:none;font-weight:500;">haul.green</a></p>
       </div>
-    `,
+    `),
   }
 }
 
+// ── Admin: Quote Notification ─────────────────────────────────
 export function adminQuoteEmail(data: BookingData): { subject: string; html: string } {
   return {
     subject: `New Quote Request — ${data.name} — $${data.total}`,
-    html: `
-      <div style="font-family:Inter,sans-serif;max-width:600px;margin:0 auto;color:#111827;">
-        <h2>New Quote Request</h2>
-        <h3>Customer</h3>
-        <p><strong>Name:</strong> ${data.name}</p>
-        <p><strong>Phone:</strong> ${data.phone}</p>
-        <p><strong>Email:</strong> ${data.email}</p>
-        <h3>Items</h3>
-        ${priceBreakdown(data)}
-        <h3>Pickup</h3>
-        <p><strong>Address:</strong> ${data.address}</p>
-        <p><strong>Floor access:</strong> ${data.pickupType}</p>
-        <p><strong>Distance:</strong> ${data.distanceKm} km</p>
-        <p style="color:#6b7280;font-size:13px;">Received: ${formatNZT()} NZT</p>
-      </div>
-    `,
+    html: wrapper(`
+      <h2 style="margin:0 0 4px;font-size:20px;font-weight:600;color:${colors.ink};">New Quote Request</h2>
+      <p style="margin:0 0 24px;font-size:13px;color:${colors.inkFaint};">Received ${formatNZT()} NZT</p>
+
+      ${sectionLabel('Customer')}
+      ${customerDetailRows(data)}
+
+      ${sectionLabel('Items & pricing')}
+      ${priceTable(data)}
+
+      ${sectionLabel('Pickup')}
+      ${detailRows(data)}
+    `),
   }
 }
